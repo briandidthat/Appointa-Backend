@@ -1,6 +1,7 @@
 Flask
 Flask-WTF
 Flask-Login
+Flask-SQLAlchemy
 python-dotenv
 pymysql
 email-validator
