@@ -16,6 +16,15 @@ def create_app():
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
 
+    # Import models
+    from models import User
+
+    @login_manager.user_loader
+    def load_user(id):
+        return User.query.get(int(id))
+
+    from views import auth
+    app.register_blueprint(auth)
 
     return app
 

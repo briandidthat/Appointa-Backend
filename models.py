@@ -13,7 +13,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100))
     user_type = db.Column(db.String(100))
     trades = db.relationship('Trade', backref="owner")
-    prior_appts = db.relationship('Prior_Appts', backref="appt-owner")
+    prior_appts = db.relationship('PriorAppts', backref="appt-owner")
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
