@@ -32,7 +32,7 @@ class User(UserMixin, db.Model):
 
 
 class Address(db.Model):
-    __tablename__ = "address"
+    __tablename__ = 'address'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     street = db.Column(db.String(100))
@@ -69,7 +69,7 @@ class Trade(db.Model):
 class Appointment(db.Model):
     __tablename__ = 'appointment'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    provider_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     client_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
