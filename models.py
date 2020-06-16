@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
     password = db.Column(db.String(100))
     role = db.Column(db.String(100))
     trade = db.Column(db.String(100))
+    addresses = db.relationship('Address', backref='owner')
     appointments = db.relationship('Appointment', backref='user')
 
     def __init__(self, first_name, last_name, phone_number, username, email, password, role, trade):
@@ -22,7 +23,7 @@ class User(UserMixin, db.Model):
         self.phone_number = phone_number
         self.username = username
         self.email = email
-        self.password = generate_password_hash(password, method='sha256'),
+        self.password = generate_password_hash(password, method='sha256')
         self.role = role
         self.trade = trade
 
@@ -30,13 +31,23 @@ class User(UserMixin, db.Model):
         return '<User {}>'.format(self.username)
 
 
-class Client(db.Model):
-    __tablename__ = 'client'
+class Address(db.Model):
+    __tablename__ = "address"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    street = db.Column(db.String(100))
+    street2 = db.Column(db.String(100))
+    city = db.Column(db.String(50))
+    state = db.Column(db.String(50))
+    zip_code = db.Column(db.String(50))
 
-    def __init__(self, user_id):
+    def __init__(self, user_id, street, street2, city, state, zip_code):
         self.user_id = user_id
+        self.street = street
+        self.street2 = street2
+        self.city = city
+        self.state = state
+        self.zip_code = zip_code
 
 
 class Trade(db.Model):
@@ -56,10 +67,10 @@ class Trade(db.Model):
 
 
 class Appointment(db.Model):
-    __tablename__ = 'prior_appts'
+    __tablename__ = 'appointment'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
+    client_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
     date = db.Column(db.DateTime, nullable=False)
@@ -73,4 +84,4 @@ class Appointment(db.Model):
         self.status = status
 
     def __repr__(self):
-        return '<Prior_Appts {}>'.format(self.type)
+        return '<Appointment {}>'.format(self.type)
