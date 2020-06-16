@@ -1,4 +1,5 @@
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash
 from app import db
 
 
@@ -11,33 +12,65 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique=True)
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
-    user_type = db.Column(db.String(100))
-    trades = db.relationship('Trade', backref="owner")
-    prior_appts = db.relationship('PriorAppts', backref="appt-owner")
+    role = db.Column(db.String(100))
+    trade = db.Column(db.String(100))
+    appointments = db.relationship('Appointment', backref='user')
+
+    def __init__(self, first_name, last_name, phone_number, username, email, password, role, trade):
+        self.first_name = first_name
+        self.last_name = last_name
+        self.phone_number = phone_number
+        self.username = username
+        self.email = email
+        self.password = generate_password_hash(password, method='sha256'),
+        self.role = role
+        self.trade = trade
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
 
+class Client(db.Model):
+    __tablename__ = 'client'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def __init__(self, user_id):
+        self.user_id = user_id
+
+
 class Trade(db.Model):
     __tablename__ = 'trade'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    code = db.Column(db.String(100), unique=True)
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
+
+    def __init__(self, code, type, description):
+        self.code = code
+        self.type = type
+        self.description = description
 
     def __repr__(self):
         return '<Trade {}>'.format(self.type)
 
 
-class PriorAppts(db.Model):
+class Appointment(db.Model):
     __tablename__ = 'prior_appts'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
     date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(100))
+
+    def __init__(self, user_id, type, description, date, status):
+        self.user_id = user_id
+        self.type = type
+        self.description = description
+        self.date = date
+        self.status = status
 
     def __repr__(self):
         return '<Prior_Appts {}>'.format(self.type)
