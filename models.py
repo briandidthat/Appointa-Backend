@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash
-from sqlalchemy import ForeignKeyConstraint
+from sqlalchemy import ForeignKey
 from app import db
 
 
@@ -13,7 +13,7 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     role = db.Column(db.String(100))
-    trade = db.Column(db.String(100))
+    trade_code = db.Column(db.String(100), ForeignKey('trade.code'))
     addresses = db.relationship('Address', backref='owner')
     appointments = db.relationship('Appointment', backref='user')
 
@@ -56,6 +56,7 @@ class Trade(db.Model):
     code = db.Column(db.String(100), unique=True)
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
+    users = db.relationship('User', backref='user')
 
     def __init__(self, code, type, description):
         self.code = code
@@ -69,18 +70,12 @@ class Trade(db.Model):
 class Appointment(db.Model):
     __tablename__ = 'appointment'
     id = db.Column(db.Integer, primary_key=True)
-    provider_id = db.Column(db.Integer)
-    client_id = db.Column(db.Integer)
+    provider_id = db.Column(db.Integer, ForeignKey("user.id"))
+    client_id = db.Column(db.Integer, ForeignKey("user.id"))
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
     date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(100))
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ['provider_id', 'client_id'],
-            ['user.id', 'user.id'],
-        ),
-    )
 
     def __init__(self, user_id, type, description, date, status):
         self.user_id = user_id
