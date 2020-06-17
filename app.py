@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_login import LoginManager
+from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 
 # instantiate database
@@ -12,16 +12,7 @@ def create_app():
 
     db.init_app(app)
 
-    login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
-
-    # Import models
-    from models import User
-
-    @login_manager.user_loader
-    def load_user(id):
-        return User.query.get(int(id))
+    jwt = JWTManager(app)
 
     from views import auth
     app.register_blueprint(auth)

@@ -1,8 +1,8 @@
-Flask
-Flask-WTF
-Flask-Login
+Flask~=1.1.2
+Flask-jwt-extended
 Flask-SQLAlchemy
-python-dotenv
+python-dotenv~=0.13.0
 pymysql
-email-validator
 cryptography
+Werkzeug~=1.0.1
+SQLAlchemy~=1.3.17

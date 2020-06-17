@@ -1,9 +1,9 @@
-from flask_login import UserMixin
 from werkzeug.security import generate_password_hash
+from sqlalchemy import ForeignKeyConstraint
 from app import db
 
 
-class User(UserMixin, db.Model):
+class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(100))
@@ -69,12 +69,18 @@ class Trade(db.Model):
 class Appointment(db.Model):
     __tablename__ = 'appointment'
     id = db.Column(db.Integer, primary_key=True)
-    provider_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    client_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    provider_id = db.Column(db.Integer)
+    client_id = db.Column(db.Integer)
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
     date = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(100))
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['provider_id', 'client_id'],
+            ['user.id', 'user.id'],
+        ),
+    )
 
     def __init__(self, user_id, type, description, date, status):
         self.user_id = user_id

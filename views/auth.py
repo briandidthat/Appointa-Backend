@@ -2,24 +2,26 @@ from app import db
 from models import User
 from exceptions import InvalidUsage
 from flask import Blueprint, jsonify, request
-from flask_login import login_user, login_required, logout_user
 from werkzeug.security import check_password_hash
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+
 
 auth = Blueprint('auth', __name__)
 
 
 @auth.route('/login', methods=['POST'])
 def login():
-    username = request.json['username']
-    password = request.json['password']
+    username = request.json.get('username', None)
+    password = request.json.get('password', None)
 
     user = User.query.filter_by(username=username).first()
 
     if not user and not check_password_hash(user.password, password):
-        raise InvalidUsage('Incorrect login credentials.')
+        raise InvalidUsage('Invalid login credentials.', status_code=401)
 
-    login_user(user)
-    return user.username
+    access_token = create_access_token(identity=username)
+
+    return jsonify(access_token=access_token), 200
 
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -33,13 +35,14 @@ def register():
     db.session.add(data)
     db.session.commit()
 
-    return data.username
+    return jsonify({"msg": "valid user registration."}), 200
 
 
-@auth.route('/logout', methods=['POST'])
-@login_required
-def logout():
-    logout_user()
+@auth.route('/user/me', methods=['POST'])
+@jwt_required
+def get_info():
+    current_user = get_jwt_identity()
+    return jsonify(logged_in_as=current_user), 200
 
 
 @auth.errorhandler(InvalidUsage)
