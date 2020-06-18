@@ -1,5 +1,6 @@
 from app import db
-from models import User
+from models import User, Role
+from utils import map_json_to_user
 from exceptions import InvalidUsage
 from flask import Blueprint, jsonify, request
 from werkzeug.security import check_password_hash
@@ -21,7 +22,7 @@ def login():
 
     access_token = create_access_token(identity=username)
 
-    return jsonify(access_token=access_token), 200
+    return jsonify(access_token=access_token, user_id=user.id), 200
 
 
 @auth.route('/register', methods=['GET', 'POST'])
@@ -31,6 +32,9 @@ def register():
 
     if user:
         raise InvalidUsage('This user is already registered.', status_code=409)
+
+    role = request.json.get('role')
+    data.roles.append(Role(role))
 
     db.session.add(data)
     db.session.commit()
@@ -51,18 +55,6 @@ def invalid_usage(error):
     response.status_code = error.status_code
     return response
 
-
-def map_json_to_user(data):
-    first_name = data['firstName']
-    last_name = data['lastName']
-    phone_number = data['phoneNumber']
-    username = data['username']
-    email = data['email']
-    password = data['password']
-    role = data['role']
-    trade = data['trade']
-
-    return User(first_name, last_name, phone_number, username, email, password, role, trade)
 
 
 
