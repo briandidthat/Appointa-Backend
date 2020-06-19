@@ -1,5 +1,5 @@
 from werkzeug.security import generate_password_hash
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Table
 from app import db
 
 
@@ -14,23 +14,20 @@ class User(db.Model):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     user_type = db.Column(db.String(100))
-    trade_code = db.Column(db.String(100), ForeignKey('trade.code'))
-    roles = db.relationship('Role', secondary='user_role')
-    addresses = db.relationship('Address', backref='user', lazy='dynamic', foreign_keys='address.user_id')
-    provider_appointments = db.relationship('Appointment', backref='provider', lazy='dynamic',
-                                            foreign_keys='appointment.provider_id')
-    client_appointments = db.relationship('Appointment', backref='client', lazy='dynamic',
-                                          foreign_keys='appointment.client_id')
+    addresses = db.relationship('Address', backref='user', lazy='dynamic')
+    roles = db.relationship('Role', secondary='user_role', lazy='select', backref=db.backref('owner', lazy=True))
+    trades = db.relationship('Trade', secondary='user_trade', lazy='select', backref=db.backref('users', lazy=True))
+    provider_appointments = db.relationship('Appointment', secondary='user_appointment', lazy='dynamic',
+                                            backref=db.backref('appointment', lazy=True))
 
-    def __init__(self, first_name, last_name, phone_number, username, email, password, role, trade):
+    def __init__(self, first_name, last_name, phone_number, username, email, password, user_type):
         self.first_name = first_name
         self.last_name = last_name
         self.phone_number = phone_number
         self.username = username
         self.email = email
         self.password = generate_password_hash(password, method='sha256')
-        self.role = role
-        self.trade = trade
+        self.user_type = user_type
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
@@ -56,39 +53,21 @@ class Address(db.Model):
         self.zip_code = zip_code
 
 
-# Define trade model
-class Trade(db.Model):
-    __tablename__ = 'trade'
-    id = db.Column(db.Integer, primary_key=True)
-    code = db.Column(db.String(100), unique=True)
-    name = db.Column(db.String(100))
-    description = db.Column(db.String(100))
-    users = db.relationship('User', backref='user')
-
-    def __init__(self, code, name, description):
-        self.code = code
-        self.name = name
-        self.description = description
-
-    def __repr__(self):
-        return '<Trade {}>'.format(self.type)
-
-
 # Define appointment model
 class Appointment(db.Model):
     __tablename__ = 'appointment'
     id = db.Column(db.Integer, primary_key=True)
-    provider_id = db.Column(db.Integer, ForeignKey("user.id", ondelete='CASCADE'))
-    client_id = db.Column(db.Integer, ForeignKey("user.id", ondelete='CASCADE'))
+    address_id = db.Column(db.Integer, ForeignKey("address.id", ondelete='CASCADE'), nullable=False)
+    client_id = db.Column(db.Integer, ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
     type = db.Column(db.String(100))
     description = db.Column(db.String(100))
     date = db.Column(db.DateTime, nullable=False)
     time = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(100))
+    provider = db.relationship('User', secondary='user_appointment', lazy='select',
+                               backref=db.backref('appointment', lazy=True))
 
-    def __init__(self, provider_id, client_id, type, description, date, time):
-        self.provider_id = provider_id
-        self.client_id = client_id
+    def __init__(self, type, description, date, time):
         self.type = type
         self.description = description
         self.date = date
@@ -102,20 +81,41 @@ class Appointment(db.Model):
 # Define the Role data-model
 class Role(db.Model):
     __tablename__ = 'role'
-    id = db.Column(db.Integer(), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True)
 
     def __init__(self, name):
         self.name = name
 
 
-# Define the UserRoles association table
-class UserRole(db.Model):
-    __tablename__ = 'user_role'
-    id = db.Column(db.Integer(), primary_key=True)
-    user_id = db.Column(db.Integer(), ForeignKey('user.id', ondelete='CASCADE'))
-    role_id = db.Column(db.Integer(), ForeignKey('role.id', ondelete='CASCADE'))
+# Define trade model
+class Trade(db.Model):
+    __tablename__ = 'trade'
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(100), unique=True)
+    name = db.Column(db.String(100))
+    description = db.Column(db.String(100))
 
-    def __init__(self, user_id, role_id):
-        self.user_id = user_id
-        self.role_id = role_id
+    def __init__(self, code, name, description):
+        self.code = code
+        self.name = name
+        self.description = description
+
+    def __repr__(self):
+        return '<Trade {}>'.format(self.type)
+
+
+user_role = db.Table('user_role',
+                     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                     db.Column('role_id', db.Integer, db.ForeignKey('role.id'), primary_key=True)
+                     )
+
+user_trade = db.Table('user_trade',
+                      db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                      db.Column('trade_id', db.Integer, db.ForeignKey('trade.id'), primary_key=True)
+                      )
+
+user_appointment = db.Table('user_appointment',
+                            db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                            db.Column('appointment_id', db.Integer, db.ForeignKey('appointment.id'), primary_key=True)
+                            )
