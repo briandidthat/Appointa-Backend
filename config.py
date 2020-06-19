@@ -5,7 +5,16 @@ basedir = path.abspath(path.dirname(__file__))
 load_dotenv(path.join(basedir, '.env'))
 
 
-SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI')
-SQLALCHEMY_TRACK_MODIFICATIONS = False
-SECRET_KEY = environ.get('SECRET_KEY')
+class Config:
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+class DevelopmentConfig(Config):
+    SQLALCHEMY_DATABASE_URI = environ.get('DEVELOPMENT_DATABASE_URI')
+    SECRET_KEY = environ.get('DEVELOPMENT_SECRET_KEY')
+
+
+class ProductionConfig(Config):
+    SQLALCHEMY_DATABASE_URI = environ.get('PRODUCTION_DATABASE_URI')
+    SECRET_KEY = environ.get('PRODUCTION_SECRET_KEY')
 

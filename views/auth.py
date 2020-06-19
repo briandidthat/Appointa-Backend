@@ -43,7 +43,7 @@ def register():
     return jsonify(access_token=access_token), 200
 
 
-@auth.route('/user/me', methods=['POST'])
+@auth.route('/user/me', methods=['GET'])
 @auth_required
 def get_info():
     current_user = get_jwt_identity()
