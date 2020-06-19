@@ -1,0 +1,136 @@
+openapi: 3.0.0
+info:
+  title: Appointa Backend
+  description: An appointment scheduling application.
+  version: 0.0.1
+servers:
+  - url: http://localhost:5000
+    description: Local host.
+paths:
+# AUTHENTICATION POSTS
+  /login:
+    post:
+      description: Login a user to the service.
+      summary: Authenticate requesting user.
+      requestBody:
+        required: True
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        '401':
+          description: Invalid credentials.
+  /register:
+    post:
+      description: Register new user and store object in database.
+      summary: Register current user.
+      requestBody:
+        required: True
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Access token.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+            
+        '409':
+          description: Duplicate User entry.
+# Appointments
+  /appointments:
+    get:
+      description: Get all available appointments in database.
+      summary: Get list of appointments.
+      responses:
+        '200':
+          description: Successful retrieval of list.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+        '401':
+          description: Unauthorized access. This route requires admin roles.
+    post:
+      description: Create new Appointment.
+      summary: Insert new appointment into the database.
+      requestBody:
+        required: True
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+      responses:
+        '200': 
+          description: Successful creation of appointment.
+        '422':
+          description: Invalid object format.
+components:
+  schemas:
+    AccessToken:
+      properties:
+        accessToken:
+          type: string
+    User:
+      properties:
+        id:
+          type: number
+        firstName: 
+          type: string
+        lastName:
+          type: string
+        phoneNumber:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        userType:
+          type: string
+      required: 
+        - firstName
+        - lastName
+        - phoneNumber
+        - email
+        - password
+        - userType
+    Appointment:
+      properties:
+        id:
+          type: number
+        addressId:
+          type: number
+        clientId:
+          type: number
+        type:
+          type: string
+        description:
+          type: string
+        time:
+          type: string
+        status:
+          type: string
+      required: 
+        - addressId
+        - clientId
+        - type
+        - description
+        - time
+        - status

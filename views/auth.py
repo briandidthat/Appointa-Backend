@@ -38,7 +38,9 @@ def register():
     data.roles.append(role)
     db.session.commit()
 
-    return jsonify(msg="valid user registration."), 200
+    access_token = create_access_token(data)
+
+    return jsonify(access_token=access_token), 200
 
 
 @auth.route('/user/me', methods=['POST'])
