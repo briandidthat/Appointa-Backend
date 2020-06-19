@@ -34,7 +34,8 @@ def register():
         raise InvalidUsage('This user is already registered.', status_code=409)
 
     db.session.add(data)
-    data.roles.append(Role(name='USER'))
+    role = Role.query.filter_by(name='USER').first()
+    data.roles.append(role)
     db.session.commit()
 
     return jsonify(msg="valid user registration."), 200

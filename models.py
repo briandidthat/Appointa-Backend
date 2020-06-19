@@ -67,8 +67,10 @@ class Appointment(db.Model):
     provider = db.relationship('User', secondary='user_appointment', lazy='select',
                                backref=db.backref('appointment', lazy=True))
 
-    def __init__(self, type, description, date, time):
+    def __init__(self, type, address_id, client_id, description, date, time):
         self.type = type
+        self.address_id = address_id
+        self.client_id = client_id
         self.description = description
         self.date = date
         self.time = time
@@ -116,6 +118,6 @@ user_trade = db.Table('user_trade',
                       )
 
 user_appointment = db.Table('user_appointment',
-                            db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+                            db.Column('provider_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
                             db.Column('appointment_id', db.Integer, db.ForeignKey('appointment.id'), primary_key=True)
                             )

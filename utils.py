@@ -23,8 +23,10 @@ def map_json_to_trade(data) -> Trade:
 
 def map_json_to_appointment(data) -> Appointment:
     type = data.get('type', None)
+    client_id = data.get('clientId', None)
+    address_id = data.get('addressId', None)
     description = data.get('description', None)
     date = data.get('date', None)
     time = data.get('time', None)
 
-    return Appointment(type, description, date, time)
+    return Appointment(type, client_id, address_id, description, date, time)

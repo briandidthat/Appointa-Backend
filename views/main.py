@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
-from models import Appointment, Trade, User, user_trade, user_appointment
+from models import Appointment, Trade, User
 from utils import map_json_to_appointment
+from flask_jwt_extended import get_jwt_claims
 from app import db, admin_required, auth_required
 
 main = Blueprint('main', __name__)
@@ -17,12 +18,11 @@ def get_all_appointments():
 @auth_required
 def create_appointment():
     appointment = map_json_to_appointment(request.json)
-    provider = User.query.filter_by(id=appointment.provider_id).first()
-    client = User.query.filter_by(id=appointment.client_id).first()
+    provider_id = get_jwt_claims().get('userId', None)
+    provider = User.query.filter_by(id=provider_id).first()
 
-    provider.provider_appointments.append(appointment)
-    client.client_appointments.append(appointment)
     db.session.add(appointment)
+    appointment.provider.append(provider)
     db.session.commit()
 
     return jsonify(appointment), 200
@@ -36,7 +36,7 @@ def get_appointments_by_user(id):
     if user.user_type == 'CLIENT':
         appointments = Appointment.query.join(User).filter_by(client_id=User.id).all()
     elif user.user_type == 'PROVIDER':
-        appointments = Appointment.query.join(User).filter_by(provider_id=User.id, status='OPEN').all()
+        appointments = User.provider_appointments.all()
 
     return jsonify(appointments), 200
 
@@ -51,7 +51,7 @@ def get_appointments_by_type():
     if user.user_type == 'CLIENT':
         appointments = Appointment.query.join(User).filter_by(client_id=User.id, type=type).all()
     elif user.user_type == 'PROVIDER':
-        appointments = Appointment.query.join(User).filter_by(provider_id=User.id, type=type).all()
+        appointments = User.provider_appointments.filter_by(type=type).all()
 
     return jsonify(appointments), 200
 
