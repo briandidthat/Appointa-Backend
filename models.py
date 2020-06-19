@@ -16,9 +16,9 @@ class User(db.Model):
     user_type = db.Column(db.String(100))
     addresses = db.relationship('Address', backref='user', lazy='dynamic')
     roles = db.relationship('Role', secondary='user_role', lazy='select', backref=db.backref('owner', lazy=True))
-    trades = db.relationship('Trade', secondary='user_trade', lazy='select', backref=db.backref('users', lazy=True))
+    trades = db.relationship('Trade', secondary='user_trade', lazy='select', backref=db.backref('user', lazy=True))
     provider_appointments = db.relationship('Appointment', secondary='user_appointment', lazy='dynamic',
-                                            backref=db.backref('appointment', lazy=True))
+                                            backref=db.backref('service_provider', lazy=True))
 
     def __init__(self, first_name, last_name, phone_number, username, email, password, user_type):
         self.first_name = first_name
@@ -31,6 +31,17 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+    def serialize(self):
+        return {
+            "user_id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "phone_number": self.phone_number,
+            "username": self.username,
+            "email": self.email,
+            "user_type": self.user_type
+        }
 
 
 # Define address model
@@ -51,6 +62,17 @@ class Address(db.Model):
         self.city = city
         self.state = state
         self.zip_code = zip_code
+
+    def serialize(self):
+        return {
+            "address_id": self.id,
+            "user_id": self.user_id,
+            "street": self.street,
+            "street2": self.street2,
+            "city": self.city,
+            "state": self.state,
+            "zip_code": self.zip_code
+        }
 
 
 # Define appointment model
@@ -79,6 +101,18 @@ class Appointment(db.Model):
     def __repr__(self):
         return '<Appointment {}>'.format(self.type)
 
+    def serialize(self):
+        return {
+            "appointment_id": self.id,
+            "address_id": self.address_id,
+            "client_id": self.client_id,
+            "type": self.type,
+            "description": self.description,
+            "date": self.date,
+            "time": self.time,
+            "status": self.status
+        }
+
 
 # Define the Role data-model
 class Role(db.Model):
@@ -105,6 +139,14 @@ class Trade(db.Model):
 
     def __repr__(self):
         return '<Trade {}>'.format(self.type)
+
+    def serialize(self):
+        return {
+            "trade_id": self.id,
+            "code": self.code,
+            "name": self.name,
+            "description": self.description
+        }
 
 
 user_role = db.Table('user_role',

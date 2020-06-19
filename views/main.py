@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from models import Appointment, Trade, User
+from models import Appointment, Trade, User, user_trade
 from utils import map_json_to_appointment
 from flask_jwt_extended import get_jwt_claims
 from app import db, admin_required, auth_required
@@ -11,7 +11,7 @@ main = Blueprint('main', __name__)
 @admin_required
 def get_all_appointments():
     appointments = Appointment.query.all()
-    return jsonify(appointments), 200
+    return jsonify(appointments=[a.serialize for a in appointments]), 200
 
 
 @main.route('/appointments', methods=['POST'])
@@ -25,7 +25,7 @@ def create_appointment():
     appointment.provider.append(provider)
     db.session.commit()
 
-    return jsonify(appointment), 200
+    return jsonify(appointment=appointment.serialize()), 200
 
 
 @main.route("/appointments/<id>", methods=['GET'])
@@ -34,11 +34,11 @@ def get_appointments_by_user(id):
     user = User.query.filter_by(id=id).first()
     appointments = []
     if user.user_type == 'CLIENT':
-        appointments = Appointment.query.join(User).filter_by(client_id=User.id).all()
+        appointments = Appointment.query.join(User).filter(Appointment.client_id == User.id).all()
     elif user.user_type == 'PROVIDER':
-        appointments = User.provider_appointments.all()
+        appointments = user.provider_appointments.all()
 
-    return jsonify(appointments), 200
+    return jsonify(appointments=[a.serialize() for a in appointments]), 200
 
 
 @main.route('/appointments/appointment-type', methods=['GET'])
@@ -53,18 +53,20 @@ def get_appointments_by_type():
     elif user.user_type == 'PROVIDER':
         appointments = User.provider_appointments.filter_by(type=type).all()
 
-    return jsonify(appointments), 200
+    return jsonify(appointments=[a.serialize() for a in appointments]), 200
 
 
 @main.route('/trades', methods=['GET'])
 @auth_required
 def get_all_trades():
     trades = Trade.query.all()
-    return jsonify(trades), 200
+    return jsonify(trades=[t.serialize() for t in trades]), 200
 
 
-@main.route('/trade', methods=['GET'])
+@main.route('/trade/<trade>', methods=['GET'])
 @auth_required
-def get_providers_by_trade():
-    trade_name = request.args.get('trade', None)
-    return jsonify(trade_name), 200
+def get_providers_by_trade(trade):
+    providers = User.query.join(user_trade).join(Trade).filter(
+        (user_trade.c.user_id == User.id) & (user_trade.c.trade_id == Trade.id)).filter_by(name=trade).all()
+
+    return jsonify(providers=[p.serialize() for p in providers]), 200
