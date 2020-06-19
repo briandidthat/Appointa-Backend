@@ -6,12 +6,19 @@ load_dotenv(path.join(basedir, '.env'))
 
 
 class Config:
+    DEBUG = False
+    TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_DATABASE_URI = environ.get('DEVELOPMENT_DATABASE_URI')
+    SECRET_KEY = environ.get('DEVELOPMENT_SECRET_KEY')
+
+
+class TestConfig:
+    TESTING = True
 
 
 class DevelopmentConfig(Config):
-    SQLALCHEMY_DATABASE_URI = environ.get('DEVELOPMENT_DATABASE_URI')
-    SECRET_KEY = environ.get('DEVELOPMENT_SECRET_KEY')
+    DEBUG = True
 
 
 class ProductionConfig(Config):
