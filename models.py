@@ -34,13 +34,13 @@ class User(db.Model):
 
     def serialize(self):
         return {
-            "user_id": self.id,
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "phone_number": self.phone_number,
+            "userId": self.id,
+            "firstName": self.first_name,
+            "lastName": self.last_name,
+            "phoneNumber": self.phone_number,
             "username": self.username,
             "email": self.email,
-            "user_type": self.user_type
+            "userType": self.user_type
         }
 
 
@@ -65,13 +65,13 @@ class Address(db.Model):
 
     def serialize(self):
         return {
-            "address_id": self.id,
-            "user_id": self.user_id,
+            "addressId": self.id,
+            "userId": self.user_id,
             "street": self.street,
             "street2": self.street2,
             "city": self.city,
             "state": self.state,
-            "zip_code": self.zip_code
+            "zipCode": self.zip_code
         }
 
 
@@ -103,9 +103,9 @@ class Appointment(db.Model):
 
     def serialize(self):
         return {
-            "appointment_id": self.id,
-            "address_id": self.address_id,
-            "client_id": self.client_id,
+            "appointmentId": self.id,
+            "addressId": self.address_id,
+            "clientId": self.client_id,
             "type": self.type,
             "description": self.description,
             "date": self.date,
@@ -142,7 +142,7 @@ class Trade(db.Model):
 
     def serialize(self):
         return {
-            "trade_id": self.id,
+            "tradeId": self.id,
             "code": self.code,
             "name": self.name,
             "description": self.description

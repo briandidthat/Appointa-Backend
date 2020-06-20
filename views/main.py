@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from models import Appointment, Trade, User, user_trade
-from utils import map_json_to_appointment
+from utils import map_json_to_appointment, map_json_to_address
 from flask_jwt_extended import get_jwt_claims
 from app import db, admin_required, auth_required
 
@@ -11,7 +11,7 @@ main = Blueprint('main', __name__)
 @admin_required
 def get_all_appointments():
     appointments = Appointment.query.all()
-    return jsonify(appointments=[a.serialize for a in appointments]), 200
+    return jsonify(appointments=[a.serialize() for a in appointments]), 200
 
 
 @main.route('/appointments', methods=['POST'])
@@ -23,9 +23,30 @@ def create_appointment():
 
     db.session.add(appointment)
     appointment.provider.append(provider)
+    provider.service_provider.append(appointment)
     db.session.commit()
 
     return jsonify(appointment=appointment.serialize()), 200
+
+
+@main.route('/addresses', methods=['POST'])
+@auth_required
+def create_address():
+    address = map_json_to_address(request.json)
+    user = User.query.filter_by(id=address.user_id).first()
+
+    db.session.add(address)
+    user.addresses.append(address)
+    db.session.commit()
+
+    return jsonify(address=address.serialize()), 200
+
+
+@main.route("/addresses/<id>", methods=['GET'])
+@auth_required
+def get_addresses_by_user(id):
+    user = User.query.filter_by(id=id).first()
+    return jsonify(addresses=[a.serialize() for a in user.addresses]), 200
 
 
 @main.route("/appointments/<id>", methods=['GET'])
