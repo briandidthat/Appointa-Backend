@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from models import Appointment, Trade, User, user_trade, Address
 from utils import map_json_to_appointment, map_json_to_address
 from flask_jwt_extended import get_jwt_claims
-from app import db, admin_required, auth_required
+from app import db, auth_required, admin_required
 
 main = Blueprint('main', __name__)
 
@@ -86,7 +86,7 @@ def get_all_trades() -> Tuple[Sequence[Trade], int]:
     return jsonify(trades=[t.serialize() for t in trades]), 200
 
 
-@main.route('/trade/<trade>', methods=['GET'])
+@main.route('/providers/trades/<trade>', methods=['GET'])
 @auth_required
 def get_providers_by_trade(trade) -> Tuple[Sequence[User], int]:
     providers = User.query.join(user_trade).join(Trade).filter(

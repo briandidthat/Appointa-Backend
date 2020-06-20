@@ -1,4 +1,3 @@
-import json
 from flask import Flask, jsonify
 from functools import wraps
 from flask_jwt_extended import JWTManager, get_jwt_claims, verify_jwt_in_request

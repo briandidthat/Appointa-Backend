@@ -1,4 +1,4 @@
-from models import User, Trade, Appointment, Address
+from models import User, Appointment, Address
 
 
 def map_json_to_user(data: dict) -> User:
@@ -11,14 +11,6 @@ def map_json_to_user(data: dict) -> User:
     type = data.get('type', None)
 
     return User(first_name, last_name, phone_number, username, email, password, type)
-
-
-def map_json_to_trade(data: dict) -> Trade:
-    code = data.get('code', None)
-    name = data.get('name', None)
-    description = data.get('description', None)
-
-    return Trade(code, name, description)
 
 
 def map_json_to_appointment(data: dict) -> Appointment:
